@@ -1,0 +1,18 @@
+{
+    "name": "carloshenriquedev/rides",
+    "description": "Este projeto foi desenvolvido durante o curso Clean Code e Clean Architecture do Rodrigo Branas",
+    "authors": [
+        {
+            "name": "Carlos Henrique",
+            "email": "contato.carloshenriquedev@outlook.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    }
+}
