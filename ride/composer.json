@@ -14,5 +14,8 @@
     },
     "require-dev": {
         "phpunit/phpunit": "*"
+    },
+    "require": {
+        "ramsey/uuid": "^4.7"
     }
 }
