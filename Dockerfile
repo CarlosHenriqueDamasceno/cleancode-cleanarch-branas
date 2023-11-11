@@ -4,9 +4,11 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     zip \
-    unzip
+    unzip \
+    libpq-dev
 
-RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+&& docker-php-ext-install pdo pdo_pgsql pgsql
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
