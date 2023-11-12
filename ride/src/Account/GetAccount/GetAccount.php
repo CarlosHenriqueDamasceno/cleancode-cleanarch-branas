@@ -1,6 +1,8 @@
 <?php
 
-namespace App\GetAccount;
+declare(strict_types=1);
+
+namespace Ride\Account\GetAccount;
 
 class GetAccount
 {

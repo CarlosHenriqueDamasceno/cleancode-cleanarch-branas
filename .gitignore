@@ -1,4 +1,5 @@
 */vendor/
 *.log
 */.phpunit.result.cache
+*/tests/coverage/
 .idea

@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Signup;
+declare(strict_types=1);
+
+namespace Ride\Account\Signup;
 
 use Ramsey\Uuid\Uuid;
 

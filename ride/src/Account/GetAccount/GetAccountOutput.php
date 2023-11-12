@@ -1,16 +1,19 @@
 <?php
 
-namespace App\Signup;
+declare(strict_types=1);
 
-readonly class SignupInput
+namespace Ride\Account\GetAccount;
+
+readonly class GetAccountOutput
 {
     public function __construct(
+        public string $id,
         public string $name,
         public string $email,
         public string $cpf,
         public string $password,
         public bool $isPassenger,
         public bool $isDriver = false,
-        public string|null $carPlate = null
+        public string|null $carPlate = null,
     ) {}
 }

@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Feature;
 
-use App\GetAccount\GetAccount;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
+use Ride\Account\GetAccount\GetAccount;
 
-class GetAccountTest extends TestCase
+final class GetAccountTest extends TestCase
 {
 
     private string $expectedAccountId;
