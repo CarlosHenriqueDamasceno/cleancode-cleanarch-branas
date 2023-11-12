@@ -19,7 +19,8 @@ class RequestRide
         $isUncompletedRides = $queryForUncompletedRides->fetchColumn();
         if ($isUncompletedRides) throw new \Exception("You can not request a ride with active rides");
         $saveRideStatement = $pdoConnection->prepare(
-            "insert into cccat14.ride (ride_id, passenger_id, status, from_lat, from_long, to_lat, to_long, date) values (?, ?, ?, ?, ?, ?, ?, ?)"
+            "insert into cccat14.ride (ride_id, passenger_id, status, from_lat, from_long, to_lat, to_long, date)
+                        values (?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $insertSuccess = $saveRideStatement->execute([
             $rideId,

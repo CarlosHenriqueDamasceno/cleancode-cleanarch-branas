@@ -13,7 +13,8 @@ class GetRide
     {
         $pdoConnection = new \PDO('pgsql:host=database;', "postgres", "123456");
         $getRideStatement = $pdoConnection->prepare(
-            "select ride_id, passenger_id, status, from_lat, from_long, to_lat, to_long, date from cccat14.ride where ride_id = ?"
+            "select ride_id, passenger_id, status, from_lat, from_long, to_lat, to_long, date 
+                        from cccat14.ride where ride_id = ?"
         );
         $getRideStatement->execute([$rideId]);
         $rideRow = $getRideStatement->fetch();

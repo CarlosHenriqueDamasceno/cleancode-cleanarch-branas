@@ -13,11 +13,11 @@ class Signup
     {
         $accountId = Uuid::uuid4()->toString();
         $pdoConnection = new \PDO('pgsql:host=database;', "postgres", "123456");
-        $queryForAccountWithSameEmail = $pdoConnection->prepare(
+        $accountWithSameEmailStatement = $pdoConnection->prepare(
             "select count(account_id) from cccat14.account where email = ?"
         );
-        $queryForAccountWithSameEmail->execute([$input->email]);
-        $accountCountWithSameEmail = $queryForAccountWithSameEmail->fetchColumn();
+        $accountWithSameEmailStatement->execute([$input->email]);
+        $accountCountWithSameEmail = $accountWithSameEmailStatement->fetchColumn();
         if ($accountCountWithSameEmail > 0) throw new \Exception("Duplicated account");
         if ($this->isInvalidName($input->name)) throw new \Exception("Invalid name");
         if ($this->isInvalidEmail($input->email)) throw new \Exception("Invalid email");
