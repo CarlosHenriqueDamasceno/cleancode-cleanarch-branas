@@ -25,26 +25,7 @@ class Signup
         if ($input->isDriver && $this->isInvalidCarPlate($input->carPlate)) {
             throw new \Exception("Invalid car plate");
         }
-        $insertStatement = $pdoConnection->prepare(
-            "insert into cccat14.account (
-                         account_id,
-                         name,
-                         email,
-                         password,
-                         cpf,
-                         car_plate,
-                         is_passenger,
-                         is_driver
-                    ) values (:account_id, :name, :email, :password, :cpf, :car_plate, :is_passenger, :is_driver)"
-        );
-        $insertStatement->bindValue(':account_id', $accountId);
-        $insertStatement->bindValue(':name', $input->name);
-        $insertStatement->bindValue(':email', $input->email);
-        $insertStatement->bindValue(':password', $input->password);
-        $insertStatement->bindValue(':cpf', $input->cpf);
-        $insertStatement->bindValue(':car_plate', $input->carPlate);
-        $insertStatement->bindValue(':is_passenger', $input->isPassenger, \PDO::PARAM_BOOL);
-        $insertStatement->bindValue(':is_driver', $input->isDriver, \PDO::PARAM_BOOL);
+        $insertStatement = $this->prepareInsertAccountStatement($pdoConnection, $accountId, $input);
         $insertSuccess = $insertStatement->execute();
         if ($insertSuccess) {
             return new SignupOutput(
@@ -73,7 +54,7 @@ class Signup
     private function validateCpf(string $cpf): bool
     {
         if (!$cpf) return false;
-        $cpf = $this->clean($cpf);
+        $cpf = $this->cleanCpfInput($cpf);
         if ($this->isInvalidLength($cpf)) return false;
         if ($this->allDigitsAreTheSame($cpf)) return false;
         $dg1 = $this->calculateDigit($cpf, 10);
@@ -81,7 +62,7 @@ class Signup
         return $this->extractCheckDigit($cpf) === $dg1 . $dg2;
     }
 
-    private function clean(string $cpf): string
+    private function cleanCpfInput(string $cpf): string
     {
         return preg_replace('/[^0-9]/', "", $cpf);
     }
@@ -91,12 +72,12 @@ class Signup
         return strlen($cpf) !== 11;
     }
 
-    function allDigitsAreTheSame(string $cpf): bool
+    private function allDigitsAreTheSame(string $cpf): bool
     {
         return count(array_unique(str_split($cpf))) === 1;
     }
 
-    function calculateDigit(string $cpf, int $factor): int
+    private function calculateDigit(string $cpf, int $factor): int
     {
         $total = 0;
         foreach (str_split($cpf) as $digit) {
@@ -106,9 +87,37 @@ class Signup
         return ($rest < 2) ? 0 : 11 - $rest;
     }
 
-    function extractCheckDigit(string $cpf): string
+    private function extractCheckDigit(string $cpf): string
     {
         return substr($cpf, -2);
+    }
+
+    private function prepareInsertAccountStatement(
+        \PDO $connection,
+        string $accountId,
+        SignupInput $input
+    ): \PDOStatement {
+        $insertStatement = $connection->prepare(
+            "insert into cccat14.account (
+                         account_id,
+                         name,
+                         email,
+                         password,
+                         cpf,
+                         car_plate,
+                         is_passenger,
+                         is_driver
+                    ) values (:account_id, :name, :email, :password, :cpf, :car_plate, :is_passenger, :is_driver)"
+        );
+        $insertStatement->bindValue(':account_id', $accountId);
+        $insertStatement->bindValue(':name', $input->name);
+        $insertStatement->bindValue(':email', $input->email);
+        $insertStatement->bindValue(':password', $input->password);
+        $insertStatement->bindValue(':cpf', $input->cpf);
+        $insertStatement->bindValue(':car_plate', $input->carPlate);
+        $insertStatement->bindValue(':is_passenger', $input->isPassenger, \PDO::PARAM_BOOL);
+        $insertStatement->bindValue(':is_driver', $input->isDriver, \PDO::PARAM_BOOL);
+        return $insertStatement;
     }
 }
 
