@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Feature;
+namespace Tests\Feature;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Ride\Account\Signup\Signup;
-use Ride\Account\Signup\SignupInput;
-use Ride\Ride\GetRide\GetRide;
-use Ride\Ride\Location;
-use Ride\Ride\RequestRide\RequestRide;
-use Ride\Ride\RequestRide\RequestRideInput;
-use Ride\Ride\RideStatus;
+use App\Core\Account\Signup\Signup;
+use App\Core\Account\Signup\SignupInput;
+use App\Core\Ride\GetRide\GetRide;
+use App\Core\Ride\Location;
+use App\Core\Ride\RequestRide\RequestRide;
+use App\Core\Ride\RequestRide\RequestRideInput;
+use App\Core\Ride\RideStatus;
 
 final class RequestRideTest extends TestCase
 {

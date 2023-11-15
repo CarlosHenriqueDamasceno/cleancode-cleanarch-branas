@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Feature;
+namespace Tests\Feature;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Ride\Account\GetAccount\GetAccount;
-use Ride\Account\Signup\Signup;
-use Ride\Account\Signup\SignupInput;
+use App\Core\Account\GetAccount\GetAccount;
+use App\Core\Account\Signup\Signup;
+use App\Core\Account\Signup\SignupInput;
 
 
 final class SignupTest extends TestCase

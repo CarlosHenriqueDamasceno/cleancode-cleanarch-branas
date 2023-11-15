@@ -7,7 +7,7 @@ namespace Feature;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
-use Ride\Account\GetAccount\GetAccount;
+use App\Core\Account\GetAccount\GetAccount;
 
 final class GetAccountTest extends TestCase
 {
