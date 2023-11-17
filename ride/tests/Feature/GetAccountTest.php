@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Feature;
 
+use App\Core\Account\AccountDAO;
+use App\Core\Account\AccountDAODatabase;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use App\Core\Account\GetAccount\GetAccount;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 final class GetAccountTest extends TestCase
 {
@@ -20,6 +23,7 @@ final class GetAccountTest extends TestCase
     private string $expectedCarPlate;
     private bool $expectedIsPassenger;
     private bool $expectedIsDriver;
+    private AccountDAO $accountDAO;
 
     protected function setUp(): void
     {
@@ -36,9 +40,7 @@ final class GetAccountTest extends TestCase
         $this->expectedIsPassenger = true;
         $this->expectedIsDriver = false;
 
-        $pdoConnection = new \PDO('pgsql:host=database;', "postgres", "123456");
-
-        $insertStatement = $pdoConnection->prepare(
+        DB::insert(
             "insert into cccat14.account (
                          account_id,
                          name,
@@ -48,29 +50,29 @@ final class GetAccountTest extends TestCase
                          car_plate,
                          is_passenger,
                          is_driver
-                    ) values (:account_id, :name, :email, :password, :cpf, :car_plate, :is_passenger, :is_driver)"
+                    ) values (:account_id, :name, :email, :password, :cpf, :car_plate, :is_passenger, :is_driver)",
+            [
+                $this->expectedAccountId,
+                $this->expectedName,
+                $this->expectedEmail,
+                $this->expectedPassword,
+                $this->expectedCpf,
+                $this->expectedCarPlate,
+                $this->expectedIsPassenger,
+                $this->expectedIsDriver,
+            ]
         );
-        $insertStatement->bindValue(':account_id', $this->expectedAccountId);
-        $insertStatement->bindValue(':name', $this->expectedName);
-        $insertStatement->bindValue(':email', $this->expectedEmail);
-        $insertStatement->bindValue(':password', $this->expectedPassword);
-        $insertStatement->bindValue(':cpf', $this->expectedCpf);
-        $insertStatement->bindValue(':car_plate', $this->expectedCarPlate);
-        $insertStatement->bindValue(':is_passenger', $this->expectedIsPassenger, \PDO::PARAM_BOOL);
-        $insertStatement->bindValue(':is_driver', $this->expectedIsDriver, \PDO::PARAM_BOOL);
-        $insertStatement->execute();
 
-        $pdoConnection = null;
+        $this->accountDAO = new AccountDAODatabase();
     }
 
     #[Test]
     public function shouldGetAnAccount(): void
     {
-        $getAccount = new GetAccount();
+        $getAccount = new GetAccount($this->accountDAO);
         $outputGetAccount = $getAccount->execute($this->expectedAccountId);
         $this->assertEquals($this->expectedName, $outputGetAccount->name);
         $this->assertEquals($this->expectedEmail, $outputGetAccount->email);
-        $this->assertEquals($this->expectedPassword, $outputGetAccount->password);
         $this->assertEquals($this->expectedCpf, $outputGetAccount->cpf);
         $this->assertEquals($this->expectedCarPlate, $outputGetAccount->carPlate);
         $this->assertEquals($this->expectedIsPassenger, $outputGetAccount->isPassenger);

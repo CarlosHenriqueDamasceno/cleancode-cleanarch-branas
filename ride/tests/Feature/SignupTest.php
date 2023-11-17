@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Core\Account\AccountDAO;
+use App\Core\Account\AccountDAODatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 use App\Core\Account\GetAccount\GetAccount;
 use App\Core\Account\Signup\Signup;
 use App\Core\Account\Signup\SignupInput;
-
+use Tests\TestCase;
 
 final class SignupTest extends TestCase
 {
+
+    private AccountDAO $accountDAO;
+
     public static function cpfProvider(): array
     {
         return [
@@ -33,6 +37,12 @@ final class SignupTest extends TestCase
         ];
     }
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->accountDAO = new AccountDAODatabase();
+    }
+
 
     #[Test]
     #[DataProvider('cpfProvider')]
@@ -46,8 +56,8 @@ final class SignupTest extends TestCase
             password: "123456",
             isPassenger: true,
         );
-        $signup = new Signup();
-        $getAccount = new GetAccount();
+        $signup = new Signup($this->accountDAO);
+        $getAccount = new GetAccount($this->accountDAO);
         $outputSignup = $signup->execute($input);
         $outputGetAccount = $getAccount->execute($outputSignup->accountId);
         $this->assertEquals($input->name, $outputGetAccount->name);
@@ -65,7 +75,7 @@ final class SignupTest extends TestCase
             password: "123456",
             isPassenger: true,
         );
-        $signup = new Signup();
+        $signup = new Signup($this->accountDAO);
         $this->expectExceptionMessage("Invalid name");
         $signup->execute($input);
     }
@@ -81,7 +91,7 @@ final class SignupTest extends TestCase
             password: "123456",
             isPassenger: true,
         );
-        $signup = new Signup();
+        $signup = new Signup($this->accountDAO);
         $this->expectExceptionMessage("Invalid email");
         $signup->execute($input);
     }
@@ -99,7 +109,7 @@ final class SignupTest extends TestCase
             password: "123456",
             isPassenger: true,
         );
-        $signup = new Signup();
+        $signup = new Signup($this->accountDAO);
         $this->expectExceptionMessage("Invalid cpf");
         $signup->execute($input);
     }
@@ -115,7 +125,7 @@ final class SignupTest extends TestCase
             password: "123456",
             isPassenger: true,
         );
-        $signup = new Signup();
+        $signup = new Signup($this->accountDAO);
         $signup->execute($input);
         $this->expectExceptionMessage("Duplicated account");
         $signup->execute($input);
@@ -134,8 +144,8 @@ final class SignupTest extends TestCase
             isDriver: true,
             carPlate: "AAA9999"
         );
-        $signup = new Signup();
-        $getAccount = new GetAccount();
+        $signup = new Signup($this->accountDAO);
+        $getAccount = new GetAccount($this->accountDAO);
         $outputSignup = $signup->execute($input);
         $outputGetAccount = $getAccount->execute($outputSignup->accountId);
         $this->assertEquals($input->name, $outputGetAccount->name);
@@ -155,7 +165,7 @@ final class SignupTest extends TestCase
             isDriver: true,
             carPlate: "AAA99A9"
         );
-        $signup = new Signup();
+        $signup = new Signup($this->accountDAO);
         $this->expectExceptionMessage("Invalid car plate");
         $signup->execute($input);
     }

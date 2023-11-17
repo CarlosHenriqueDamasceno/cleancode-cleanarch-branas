@@ -4,18 +4,33 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Core\Account\AccountDAO;
+use App\Core\Account\AccountDAODatabase;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 use App\Core\Account\Signup\Signup;
 use App\Core\Account\Signup\SignupInput;
 use App\Core\Ride\GetRide\GetRide;
 use App\Core\Ride\Location;
 use App\Core\Ride\RequestRide\RequestRide;
 use App\Core\Ride\RequestRide\RequestRideInput;
+use App\Core\Ride\RideDAO;
+use App\Core\Ride\RideDAODatabase;
 use App\Core\Ride\RideStatus;
 
 final class RequestRideTest extends TestCase
 {
+
+    private AccountDAO $accountDAO;
+    private RideDAO $rideDAO;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->accountDAO = new AccountDAODatabase();
+        $this->rideDAO = new RideDAODatabase();
+    }
+
     #[Test]
     public function shouldRequestARide(): void
     {
@@ -27,7 +42,7 @@ final class RequestRideTest extends TestCase
             password: "123456",
             isPassenger: true,
         );
-        $signup = new Signup();
+        $signup = new Signup($this->accountDAO);
         $outputSignup = $signup->execute($input);
 
         $input = new RequestRideInput(
@@ -42,7 +57,7 @@ final class RequestRideTest extends TestCase
             )
         );
 
-        $requestRide = new RequestRide();
+        $requestRide = new RequestRide($this->rideDAO);
         $getRide = new GetRide();
         $outputRequestRide = $requestRide->execute($input);
         $outputGetRide = $getRide->execute($outputRequestRide->rideId);
@@ -61,7 +76,7 @@ final class RequestRideTest extends TestCase
             password: "123456",
             isPassenger: true,
         );
-        $signup = new Signup();
+        $signup = new Signup($this->accountDAO);
         $outputSignup = $signup->execute($input);
 
         $input = new RequestRideInput(
@@ -76,7 +91,7 @@ final class RequestRideTest extends TestCase
             )
         );
 
-        $requestRide = new RequestRide();
+        $requestRide = new RequestRide($this->rideDAO);
         $requestRide->execute($input);
         $this->expectExceptionMessage("You can not request a ride with active rides");
         $requestRide->execute($input);

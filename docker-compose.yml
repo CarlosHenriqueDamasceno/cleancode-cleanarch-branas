@@ -2,7 +2,7 @@ version: '3.7'
 services:
   app_ride:
     build: ./
-    container_name: app
+    container_name: app-ride
     working_dir: /var/www
     volumes:
       - ./ride/:/var/www
@@ -22,9 +22,11 @@ services:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
       - app-php
+    depends_on:
+      - app_ride
   database_ride:
     image: postgres:16.0-alpine
-    container_name: database
+    container_name: database-ride
     ports:
       - '5432:5432'
     environment:

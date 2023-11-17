@@ -4,36 +4,41 @@ declare(strict_types=1);
 
 namespace App\Core\Account\Signup;
 
+use App\Core\Account\Account;
+use App\Core\Account\AccountDAO;
 use Ramsey\Uuid\Uuid;
 
 class Signup
 {
+    public function __construct(private AccountDAO $accountDAO)
+    {
+    }
 
-    function execute(SignupInput $input): SignupOutput
+    public function execute(SignupInput $input): SignupOutput
     {
         $accountId = Uuid::uuid4()->toString();
-        $pdoConnection = new \PDO('pgsql:host=database;', "postgres", "123456");
-        $accountWithSameEmailStatement = $pdoConnection->prepare(
-            "select count(account_id) from cccat14.account where email = ?"
-        );
-        $accountWithSameEmailStatement->execute([$input->email]);
-        $accountCountWithSameEmail = $accountWithSameEmailStatement->fetchColumn();
-        if ($accountCountWithSameEmail > 0) throw new \Exception("Duplicated account");
+        $accountWithSameEmail = $this->accountDAO->getByEmail($input->email);
+        if (!is_null($accountWithSameEmail)) throw new \Exception("Duplicated account");
         if ($this->isInvalidName($input->name)) throw new \Exception("Invalid name");
         if ($this->isInvalidEmail($input->email)) throw new \Exception("Invalid email");
         if (!$this->validateCpf($input->cpf)) throw new \Exception("Invalid cpf");
         if ($input->isDriver && $this->isInvalidCarPlate($input->carPlate)) {
             throw new \Exception("Invalid car plate");
         }
-        $insertStatement = $this->prepareInsertAccountStatement($pdoConnection, $accountId, $input);
-        $insertSuccess = $insertStatement->execute();
-        if ($insertSuccess) {
-            return new SignupOutput(
-                accountId: $accountId,
-            );
-        } else {
-            throw new \Exception("Sql statement error");
-        }
+        $account = new Account(
+            $accountId,
+            $input->name,
+            $input->email,
+            $input->cpf,
+            $input->password,
+            $input->isPassenger,
+            $input->isDriver,
+            $input->carPlate
+        );
+        $account = $this->accountDAO->save($account);
+        return new SignupOutput(
+            accountId: $accountId,
+        );
     }
 
     private function isInvalidName(string $name): bool
@@ -90,33 +95,5 @@ class Signup
     private function extractCheckDigit(string $cpf): string
     {
         return substr($cpf, -2);
-    }
-
-    private function prepareInsertAccountStatement(
-        \PDO $connection,
-        string $accountId,
-        SignupInput $input
-    ): \PDOStatement {
-        $insertStatement = $connection->prepare(
-            "insert into cccat14.account (
-                         account_id,
-                         name,
-                         email,
-                         password,
-                         cpf,
-                         car_plate,
-                         is_passenger,
-                         is_driver
-                    ) values (:account_id, :name, :email, :password, :cpf, :car_plate, :is_passenger, :is_driver)"
-        );
-        $insertStatement->bindValue(':account_id', $accountId);
-        $insertStatement->bindValue(':name', $input->name);
-        $insertStatement->bindValue(':email', $input->email);
-        $insertStatement->bindValue(':password', $input->password);
-        $insertStatement->bindValue(':cpf', $input->cpf);
-        $insertStatement->bindValue(':car_plate', $input->carPlate);
-        $insertStatement->bindValue(':is_passenger', $input->isPassenger, \PDO::PARAM_BOOL);
-        $insertStatement->bindValue(':is_driver', $input->isDriver, \PDO::PARAM_BOOL);
-        return $insertStatement;
     }
 }

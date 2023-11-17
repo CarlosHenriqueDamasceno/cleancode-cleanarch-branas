@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace App\Core\Account\GetAccount;
 
+use App\Core\Account\AccountDAO;
+
 class GetAccount
 {
-    public function execute(string $id): GetAccountOutput
+
+    public function __construct(private AccountDAO $accountDAO)
     {
-        $pdoConnection = new \PDO('pgsql:host=database;', "postgres", "123456");
-        $queryForAccount = $pdoConnection->prepare("select * from cccat14.account where account_id = ?");
-        $queryForAccount->execute([$id]);
-        $account = $queryForAccount->fetch();
+    }
+
+    public function execute(string $id): ?GetAccountOutput
+    {
+        $account = $this->accountDAO->getById($id);
+        if (is_null($account)) return null;
         return new GetAccountOutput(
-            id: $account['account_id'],
-            name: $account['name'],
-            email: $account['email'],
-            cpf: $account['cpf'],
-            password: $account['password'],
-            isPassenger: $account['is_passenger'],
-            isDriver: $account['is_driver'],
-            carPlate: $account['car_plate']
+            accountId: $account->accountId,
+            name: $account->name,
+            email: $account->email,
+            cpf: $account->cpf,
+            isPassenger: $account->isPassenger,
+            isDriver: $account->isDriver,
+            carPlate: $account->carPlate
         );
     }
 }

@@ -11,7 +11,7 @@ class GetRide
 {
     public function execute(string $rideId): GetRideOutput
     {
-        $pdoConnection = new \PDO('pgsql:host=database;', "postgres", "123456");
+        $pdoConnection = new \PDO('pgsql:host=database_ride;', "postgres", "123456");
         $getRideStatement = $pdoConnection->prepare(
             "select ride_id, passenger_id, status, from_lat, from_long, to_lat, to_long, date
                         from cccat14.ride where ride_id = ?"

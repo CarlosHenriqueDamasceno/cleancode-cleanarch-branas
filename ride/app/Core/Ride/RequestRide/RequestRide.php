@@ -4,38 +4,39 @@ declare(strict_types=1);
 
 namespace App\Core\Ride\RequestRide;
 
+use App\Core\Ride\Location;
+use App\Core\Ride\Ride;
+use App\Core\Ride\RideDAO;
+use App\Core\Ride\RideStatus;
+use DateTimeImmutable;
 use Ramsey\Uuid\Uuid;
 
 class RequestRide
 {
+    public function __construct(private RideDAO $accountDAO)
+    {
+    }
+
     public function execute(RequestRideInput $input): RequestRideOutput
     {
         $rideId = Uuid::uuid4()->toString();
-        $pdoConnection = new \PDO('pgsql:host=database;', "postgres", "123456");
-        $uncompletedRidesStatement = $pdoConnection->prepare(
-            "select count(ride_id) from cccat14.ride where status != '4' and passenger_id = ?"
+        $activeRide = $this->accountDAO->getActiveByPassengerId($input->passengerId);
+        if (!is_null($activeRide)) throw new \Exception("You can not request a ride with active rides");
+        $ride = new Ride(
+            rideId: $rideId,
+            passengerId: $input->passengerId,
+            status: RideStatus::REQUESTED,
+            from: new Location(
+                $input->startingPoint->latitude,
+                $input->startingPoint->longitude
+            ),
+            destination: new Location(
+                $input->destination->latitude,
+                $input->destination->longitude
+            ),
+            date: new DateTimeImmutable()
         );
-        $uncompletedRidesStatement->execute([$input->passengerId]);
-        $uncompletedRidesCount = $uncompletedRidesStatement->fetchColumn();
-        if ($uncompletedRidesCount > 0) throw new \Exception("You can not request a ride with active rides");
-        $saveRideStatement = $pdoConnection->prepare(
-            "insert into cccat14.ride (ride_id, passenger_id, status, from_lat, from_long, to_lat, to_long, date)
-                        values (:ride_id, :passenger_id, :status, :from_lat, :from_long, :to_lat, :to_long, :date)"
-        );
-        $insertSuccess = $saveRideStatement->execute([
-            ":ride_id" => $rideId,
-            ":passenger_id" => $input->passengerId,
-            ":status" => 1,
-            ":from_lat" => $input->startingPoint->latitude,
-            ":from_long" => $input->startingPoint->longitude,
-            ":to_lat" => $input->destination->latitude,
-            ":to_long" => $input->destination->longitude,
-            ":date" => date("Y-m-d H:i:s")
-        ]);
-        if ($insertSuccess) {
-            return new RequestRideOutput(rideId: $rideId);
-        } else {
-            throw new \Exception("Sql statement error");
-        }
+        $ride = $this->accountDAO->save($ride);
+        return new RequestRideOutput(rideId: $rideId);
     }
 }
