@@ -31,6 +31,7 @@ services:
       - '5432:5432'
     environment:
       POSTGRES_PASSWORD: '123456'
+      POSTGRES_DATABASE: 'cccat14'
     volumes:
       - './docker/database:/scripts'
       - 'pgdata:/var/lib/postgresql/data'

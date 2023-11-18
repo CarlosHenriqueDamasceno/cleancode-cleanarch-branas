@@ -6,6 +6,7 @@ namespace App\Core\Ride\GetRide;
 
 use App\Core\Ride\Location;
 use App\Core\Ride\RideStatus;
+use DateTimeImmutable;
 
 readonly class GetRideOutput
 {
@@ -13,9 +14,9 @@ readonly class GetRideOutput
         public string $rideId,
         public string $passengerId,
         public RideStatus $status,
-        public Location $startingPoint,
+        public Location $from,
         public Location $destination,
-        public string $date
+        public DateTimeImmutable $date
     ) {
     }
 }

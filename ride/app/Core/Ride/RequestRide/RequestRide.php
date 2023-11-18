@@ -11,7 +11,7 @@ use App\Core\Ride\RideStatus;
 use DateTimeImmutable;
 use Ramsey\Uuid\Uuid;
 
-class RequestRide
+readonly class RequestRide
 {
     public function __construct(private RideDAO $accountDAO)
     {

@@ -58,7 +58,7 @@ final class RequestRideTest extends TestCase
         );
 
         $requestRide = new RequestRide($this->rideDAO);
-        $getRide = new GetRide();
+        $getRide = new GetRide($this->rideDAO);
         $outputRequestRide = $requestRide->execute($input);
         $outputGetRide = $getRide->execute($outputRequestRide->rideId);
         $this->assertInstanceOf(RideStatus::class, $outputGetRide->status);

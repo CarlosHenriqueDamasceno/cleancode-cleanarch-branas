@@ -4,33 +4,26 @@ declare(strict_types=1);
 
 namespace App\Core\Ride\GetRide;
 
-use App\Core\Ride\Location;
-use App\Core\Ride\RideStatus;
+use App\Core\Ride\RideDAO;
 
-class GetRide
+readonly class GetRide
 {
+
+    public function __construct(private RideDAO $rideDAO)
+    {
+    }
+
     public function execute(string $rideId): GetRideOutput
     {
-        $pdoConnection = new \PDO('pgsql:host=database_ride;', "postgres", "123456");
-        $getRideStatement = $pdoConnection->prepare(
-            "select ride_id, passenger_id, status, from_lat, from_long, to_lat, to_long, date
-                        from cccat14.ride where ride_id = ?"
-        );
-        $getRideStatement->execute([$rideId]);
-        $rideRow = $getRideStatement->fetch();
+        $ride = $this->rideDAO->getById($rideId);
+        if (is_null($ride)) return null;
         return new GetRideOutput(
-            rideId: $rideRow['ride_id'],
-            passengerId: $rideRow['passenger_id'],
-            status: RideStatus::from((int)$rideRow['status']),
-            startingPoint: new Location(
-                latitude: $rideRow['from_lat'],
-                longitude: $rideRow['from_long']
-            ),
-            destination: new Location(
-                latitude: $rideRow['to_lat'],
-                longitude: $rideRow['to_long']
-            ),
-            date: $rideRow['date']
+            rideId: $ride->rideId,
+            passengerId: $ride->passengerId,
+            status: $ride->status,
+            from: $ride->from,
+            destination: $ride->destination,
+            date: $ride->date
         );
     }
 }

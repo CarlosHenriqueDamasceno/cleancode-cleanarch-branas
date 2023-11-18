@@ -6,9 +6,10 @@ namespace App\Core\Account\Signup;
 
 use App\Core\Account\Account;
 use App\Core\Account\AccountDAO;
+use App\Core\Account\CpfValidator;
 use Ramsey\Uuid\Uuid;
 
-class Signup
+readonly class Signup
 {
     public function __construct(private AccountDAO $accountDAO)
     {
@@ -21,7 +22,7 @@ class Signup
         if (!is_null($accountWithSameEmail)) throw new \Exception("Duplicated account");
         if ($this->isInvalidName($input->name)) throw new \Exception("Invalid name");
         if ($this->isInvalidEmail($input->email)) throw new \Exception("Invalid email");
-        if (!$this->validateCpf($input->cpf)) throw new \Exception("Invalid cpf");
+        if (!CpfValidator::validate($input->cpf)) throw new \Exception("Invalid cpf");
         if ($input->isDriver && $this->isInvalidCarPlate($input->carPlate)) {
             throw new \Exception("Invalid car plate");
         }
@@ -54,46 +55,5 @@ class Signup
     private function isInvalidCarPlate(string $carPlate): bool
     {
         return preg_match("/[A-Z]{3}[0-9]{4}/", $carPlate) == 0;
-    }
-
-    private function validateCpf(string $cpf): bool
-    {
-        if (!$cpf) return false;
-        $cpf = $this->cleanCpfInput($cpf);
-        if ($this->isInvalidLength($cpf)) return false;
-        if ($this->allDigitsAreTheSame($cpf)) return false;
-        $dg1 = $this->calculateDigit($cpf, 10);
-        $dg2 = $this->calculateDigit($cpf, 11);
-        return $this->extractCheckDigit($cpf) === $dg1 . $dg2;
-    }
-
-    private function cleanCpfInput(string $cpf): string
-    {
-        return preg_replace('/[^0-9]/', "", $cpf);
-    }
-
-    private function isInvalidLength(string $cpf): bool
-    {
-        return strlen($cpf) !== 11;
-    }
-
-    private function allDigitsAreTheSame(string $cpf): bool
-    {
-        return count(array_unique(str_split($cpf))) === 1;
-    }
-
-    private function calculateDigit(string $cpf, int $factor): int
-    {
-        $total = 0;
-        foreach (str_split($cpf) as $digit) {
-            if ($factor > 1) $total += $digit * $factor--;
-        }
-        $rest = $total % 11;
-        return ($rest < 2) ? 0 : 11 - $rest;
-    }
-
-    private function extractCheckDigit(string $cpf): string
-    {
-        return substr($cpf, -2);
     }
 }

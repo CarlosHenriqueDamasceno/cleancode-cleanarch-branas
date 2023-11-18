@@ -4,38 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Core\Account\Account;
 use App\Core\Account\AccountDAO;
 use App\Core\Account\AccountDAODatabase;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use App\Core\Account\GetAccount\GetAccount;
 use App\Core\Account\Signup\Signup;
 use App\Core\Account\Signup\SignupInput;
+use Mockery;
 use Tests\TestCase;
 
 final class SignupTest extends TestCase
 {
 
     private AccountDAO $accountDAO;
-
-    public static function cpfProvider(): array
-    {
-        return [
-            ["97456321558"],
-            ["71428793860"],
-            ["87748248800"]
-        ];
-    }
-
-    public static function invalidCpfProvider(): array
-    {
-        return [
-            [""],
-            ["11111111111"],
-            ["111"],
-            ["11111111111111"]
-        ];
-    }
 
     protected function setUp(): void
     {
@@ -45,19 +27,88 @@ final class SignupTest extends TestCase
 
 
     #[Test]
-    #[DataProvider('cpfProvider')]
-    public function shouldCreatePassengersAccount(string $cpf): void
+    public function shouldCreatePassengersAccount(): void
     {
         $randomNumber = rand();
         $input = new SignupInput(
             name: "Jhon Doe",
             email: "jhon.doe$randomNumber@gmail.com",
-            cpf: $cpf,
+            cpf: "97456321558",
             password: "123456",
             isPassenger: true,
         );
         $signup = new Signup($this->accountDAO);
         $getAccount = new GetAccount($this->accountDAO);
+        $outputSignup = $signup->execute($input);
+        $outputGetAccount = $getAccount->execute($outputSignup->accountId);
+        $this->assertEquals($input->name, $outputGetAccount->name);
+        $this->assertEquals($input->email, $outputGetAccount->email);
+    }
+
+    #[Test]
+    public function shouldCreatePassengersAccountWithStub(): void
+    {
+        $randomNumber = rand();
+        $input = new SignupInput(
+            name: "Jhon Doe",
+            email: "jhon.doe$randomNumber@gmail.com",
+            cpf: "97456321558",
+            password: "123456",
+            isPassenger: true,
+        );
+        $accountDAOStub = Mockery::mock(AccountDAO::class);
+        $accountDAOStub->shouldReceive("save")->andReturnUsing(fn ($param) => $param);
+        $accountDAOStub->shouldReceive("getByEmail")->andReturn(null);
+        $accountDAOStub->shouldReceive("getById")->andReturnUsing(
+            fn ($id) => new Account(
+                $id,
+                $input->name,
+                $input->email,
+                $input->cpf,
+                $input->password,
+                $input->isPassenger,
+                $input->isDriver,
+                $input->carPlate
+            )
+        );
+        $signup = new Signup($accountDAOStub);
+        $getAccount = new GetAccount($accountDAOStub);
+        $outputSignup = $signup->execute($input);
+        $outputGetAccount = $getAccount->execute($outputSignup->accountId);
+        $this->assertEquals($input->name, $outputGetAccount->name);
+        $this->assertEquals($input->email, $outputGetAccount->email);
+    }
+
+    #[Test]
+    public function shouldCreatePassengersAccountWithMock(): void
+    {
+        $randomNumber = rand();
+        $input = new SignupInput(
+            name: "Jhon Doe",
+            email: "jhon.doe$randomNumber@gmail.com",
+            cpf: "97456321558",
+            password: "123456",
+            isPassenger: true,
+        );
+        $accountDAOStub = Mockery::mock(AccountDAO::class);
+        $accountDAOStub->shouldReceive("save")->withArgs(
+            fn (Account $account) => $account->email === $input->email && $account->cpf === $input->cpf
+        )->andReturnUsing(fn ($param) => $param)->once();
+        $accountDAOStub->shouldReceive("getByEmail")->andReturn(null);
+        $accountDAOStub->shouldReceive("getById")->andReturnUsing(
+            fn ($id) => new Account(
+                $id,
+                $input->name,
+                $input->email,
+                $input->cpf,
+                $input->password,
+                $input->isPassenger,
+                $input->isDriver,
+                $input->carPlate
+            )
+        );
+        $signup = new Signup($accountDAOStub);
+        $getAccount = new GetAccount($accountDAOStub);
         $outputSignup = $signup->execute($input);
         $outputGetAccount = $getAccount->execute($outputSignup->accountId);
         $this->assertEquals($input->name, $outputGetAccount->name);
@@ -98,14 +149,13 @@ final class SignupTest extends TestCase
 
 
     #[Test]
-    #[DataProvider("invalidCpfProvider")]
-    public function shouldNotCreateAccountWithInvalidCpf(string $cpf): void
+    public function shouldNotCreateAccountWithInvalidCpf(): void
     {
         $randomNumber = rand();
         $input = new SignupInput(
             name: "Jhon Doe",
             email: "jhon.doe$randomNumber@gmail.com",
-            cpf: $cpf,
+            cpf: "11111111111",
             password: "123456",
             isPassenger: true,
         );

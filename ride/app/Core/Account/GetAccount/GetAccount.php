@@ -6,7 +6,7 @@ namespace App\Core\Account\GetAccount;
 
 use App\Core\Account\AccountDAO;
 
-class GetAccount
+readonly class GetAccount
 {
 
     public function __construct(private AccountDAO $accountDAO)
